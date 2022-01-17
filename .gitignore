@@ -1,5 +1,5 @@
 hsptmp
 obj
-hsptmp.exe
+*.exe
 packfile
 start.ax
