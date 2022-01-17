@@ -1,5 +1,7 @@
 ; 白の裏が見えるか
 can_see_back=0
+; 無双モード
+musou=1
 ; 裏ランダム（未実装）
 random_back=0
 ; 駒数に制限（未実装）
@@ -109,6 +111,20 @@ gosub *draw_stone
 turn=4:i=S/2-1:j=S/2-1
 board(i,j)=turn
 gosub *draw_stone
+if musou{
+	turn=1:i=S/2:j=S/2-1
+	board(i,j)=turn
+	gosub *draw_stone
+	turn=2:i=S/2:j=S/2+1
+	board(i,j)=turn
+	gosub *draw_stone
+	turn=3:i=S/2+1:j=S/2
+	board(i,j)=turn
+	gosub *draw_stone
+	turn=4:i=S/2-1:j=S/2
+	board(i,j)=turn
+	gosub *draw_stone
+}
 
 ; turn<0 => 裏が-turnの白
 turn=-1
