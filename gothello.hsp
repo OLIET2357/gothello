@@ -1,0 +1,272 @@
+; 白の裏が見えるか
+can_see_back=0
+; 裏ランダム（未実装）
+random_back=0
+; 駒数に制限（未実装）
+restrict_back=0
+
+; 定数宣言
+
+; 盤サイズ
+S=9
+
+; ウィンドウサイズ
+WX=640
+WY=480
+
+; 盤サイズ
+BX=400
+BY=400
+
+; 盤左上
+BX0=(WX-BX)/2
+BY0=(WY-BY)/2
+
+; 盤右下
+BX1=BX0+BX
+BY1=BY0+BY
+
+; 手番
+TX0=10
+TY0=50
+
+; 手番サイズ
+TX=100
+TY=100
+
+; 手番右下
+TX1=TX0+TX
+TY1=TY0+TY
+
+; 石のサイズを小さくする
+D=5
+
+; 石の裏のサイズを小さくする
+E=10
+
+; 手番石Y座標調整
+DY=10
+
+; 手番石半径
+TR=20
+
+; 手番石裏半径
+TBR=8
+
+
+title "ゴセロ"
+
+
+*start
+
+pos 0,0
+objsize
+button "RESET",*start
+
+; 配列宣言
+dim board,S,S
+
+; 盤描画
+color 0,127,0
+boxf BX0,BY0,BX1,BY1
+
+color
+repeat S+1
+	line BX0,BY0+BY/S*cnt,BX0+BX,BY0+BY/S*cnt
+loop
+repeat S+1
+	line BX0+BX/S*cnt,BY0,BX0+BX/S*cnt,BY0+BY
+loop
+
+; 手番描画
+color 0,255,255
+boxf TX0,TY0,TX1,TY1
+color
+pos TX0+5,TY0+5
+mes "現在の手番"
+pos TX0,TY+50
+objsize 100
+if random_back==0:button gosub "裏の色を変更", *change_back:mes
+button gosub "パス",*pass
+mes
+button gosub "ゲーム終了",*end_game_confirm
+
+; 石初期配置（アニメ準拠）
+turn=-1:i=S/2:j=S/2
+board(i,j)=turn
+gosub *draw_stone
+turn=1:i=S/2+1:j=S/2-1
+board(i,j)=turn
+gosub *draw_stone
+turn=2:i=S/2-1:j=S/2+1
+board(i,j)=turn
+gosub *draw_stone
+turn=3:i=S/2+1:j=S/2+1
+board(i,j)=turn
+gosub *draw_stone
+turn=4:i==S/2-1:j==S/2-1
+board(i,j)=turn
+gosub *draw_stone
+
+; turn<0 => 裏が-turnの白
+turn=-1
+gosub *draw_turn
+
+onclick gosub *click
+stop
+
+*turn2color
+	if turn<0 :color 255,255,255 ; 白
+	if turn==1:color 255,0,  0   ; 赤
+	if turn==2:color 0,  255,0   ; 緑
+	if turn==3:color 255,0,  255 ; ピンク
+	if turn==4:color 0,  0,  0   ; 黒
+	return
+
+; 石描画(turn,i,j)
+*draw_stone
+	gosub *turn2color
+	circle BX0+BX/S*i+D,BY0+BY/S*j+D,BX0+BX/S*(i+1)-D,BY0+BY/S*(j+1)-D
+	if can_see_back:if turn<0{
+		turn*=-1
+		gosub *turn2color
+		turn*=-1
+		circle BX0+BX/S*i+D+E,BY0+BY/S*j+D+E,BX0+BX/S*(i+1)-D-E,BY0+BY/S*(j+1)-D-E		
+	}
+	return
+
+; 手番描画(turn)
+*draw_turn
+	gosub *turn2color
+	circle TX0+TX/2-TR,TY0+TY/2-TR+DY,TX0+TX/2+TR,TY1-TY/2+TR+DY
+	if turn<0{
+		turn*=-1
+		gosub *turn2color
+		turn*=-1
+		if can_see_back==0 and random_back:else:
+		circle TX0+TX/2-TBR,TY0+TY/2-TBR+DY,TX0+TX/2+TBR,TY1-TY/2+TBR+DY
+	}
+	return
+
+; クリック時
+*click
+	; 左クリック以外を弾く
+	if iparam!=0:return
+	; 盤
+	if BX0<=mousex and mousex<=BX1 and BY0<mousey and mousey<BY1{
+		i=(mousex-BX0)/(BX/S)
+		j=(mousey-BY0)/(BY/S)
+		if 0<=i and i<S and 0<=j and j<S:else:return
+		gosub *put
+		filled=1
+		if ret{
+			repeat S
+				i=cnt
+				repeat S
+					j=cnt
+					if board(i,j)==0:filled=0
+				loop
+			loop
+			if filled=1:goto *end_game
+			gosub *next_turn
+		}else{
+			;dialog "着手できません",1
+		}
+	}
+	; 手番
+	if TX0<=mousex and mousex<=TX1 and TY0<=mousey and mousey<=TY1{
+		gosub *change_back
+	}
+	return
+
+; 着手し裏返す
+; ret=裏返えせたか
+; turn,i,j -> ret,board更新
+*put
+	if board(i,j)!=0:ret=0:return
+	org_i=i:org_j=j
+	org_turn=turn
+	put_ret=0
+	repeat 8
+		di=cnt
+		repeat 2
+			flip=cnt
+			ii=org_i:jj=org_j
+			gosub *transfer
+			if ret==0:break
+			while (org_turn<0 and board(ii,jj)>0) or (org_turn>0 and board(ii,jj)!=0 and board(ii,jj)!=org_turn)
+				if flip{
+					put_ret=1
+					board(ii,jj)*=-1
+					i=ii:j=jj
+					turn=board(ii,jj)
+					gosub *draw_stone
+				}
+				gosub *transfer
+				if ret==0:break
+			wend
+			if org_turn<0: if board(ii,jj)<0:else:break
+			if org_turn>0: if board(ii,jj)==org_turn:else:break
+		loop
+	loop
+	i=org_i:j=org_j
+	turn=org_turn
+	ret=put_ret
+	if ret{
+		board(i,j)=turn
+		gosub *draw_stone
+	}
+	return
+
+; (di,ii,jj) -> (ret,ii,jj)
+*transfer
+	if di==0:ii+=1
+	if di==1:ii-=1
+	if di==2:jj+=1
+	if di==3:jj-=1
+	if di==4:ii+=1:jj+=1
+	if di==5:ii+=1:jj-=1
+	if di==6:ii-=1:jj+=1
+	if di==7:ii-=1:jj-=1
+	ret=0<=ii and ii<S and 0<=jj and jj<S
+	return
+
+; 白の裏の色変更
+*change_back
+	if turn<0:turn-=1
+	if turn<-4:turn=-1
+	gosub *draw_turn
+	return
+
+; パス
+*pass
+	gosub *next_turn
+	return
+
+; 次のターン
+*next_turn
+	if turn<0:turn=0
+	turn++
+	turn\=5
+	if turn==0:turn=-1
+	gosub *draw_turn
+	return
+
+*end_game_confirm
+	dialog "本当にゲームを終了しますか？",3
+	if stat==6:goto *end_game
+	return
+
+*end_game
+	white=0
+	colored=0
+	repeat S
+		i=cnt
+		repeat S
+			j=cnt
+			if board(i,j)<0:white++
+			if board(i,j)>0:colored++
+		loop
+	loop
+	dialog "白 - 色\n"+white+ " - "+colored,0,"結果"
+	stop
