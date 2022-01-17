@@ -2,4 +2,4 @@ hsptmp
 obj
 *.exe
 packfile
-start.ax
+*.ax
