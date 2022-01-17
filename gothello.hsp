@@ -4,6 +4,8 @@ can_see_back=0
 random_back=0
 ; 駒数に制限（未実装）
 restrict_back=0
+; 真ん中の白はひっくり返さない（未実装）
+bingo=0
 
 ; 定数宣言
 
