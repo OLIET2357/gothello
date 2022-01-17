@@ -12,7 +12,7 @@
 
 ![13-2](img/13_2.png)
 
-棋譜（読み方は MEMO 参照）
+棋譜（読み方は [MEMO](MEMO.md) 参照）
 
 `[rg]g3;Gh2;Pc3;Wi1;[rgp]g7;Ph8;Bi9;Wc7;Bb2;Wa1;`
 
