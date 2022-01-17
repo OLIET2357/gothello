@@ -2,6 +2,8 @@
 can_see_back=0
 ; 無双モード
 musou=1
+; パス禁止
+forbid_pass=1
 ; 裏ランダム（未実装）
 random_back=0
 ; 駒数に制限（未実装）
@@ -91,8 +93,7 @@ mes "現在の手番"
 pos TX0,TY+50
 objsize 100
 if random_back==0:button gosub "裏の色を変更", *change_back:mes
-button gosub "パス",*pass
-mes
+if forbid_pass==0:button gosub "パス",*pass:mes
 button gosub "ゲーム終了",*end_game_confirm
 
 ; 石初期配置（アニメ準拠）
@@ -175,6 +176,7 @@ stop
 		i=(mousex-BX0)/(BX/S)
 		j=(mousey-BY0)/(BY/S)
 		if 0<=i and i<S and 0<=j and j<S:else:return
+		dry_run=0
 		gosub *put
 		filled=1
 		if ret{
@@ -185,7 +187,8 @@ stop
 					if board(i,j)==0:filled=0
 				loop
 			loop
-			if filled=1:goto *end_game
+			if filled==1:goto *show_result
+			pass_cnt=0
 			gosub *next_turn
 		}else{
 			;dialog "着手できません",1
@@ -199,7 +202,7 @@ stop
 
 ; 着手し裏返す
 ; ret=裏返えせたか
-; turn,i,j -> ret,board更新
+; turn,i,j.dry_run -> ret,board更新
 *put
 	if board(i,j)!=0:ret=0:return
 	org_i=i:org_j=j
@@ -215,6 +218,7 @@ stop
 			while (org_turn<0 and board(ii,jj)>0) or (org_turn>0 and board(ii,jj)!=0 and board(ii,jj)!=org_turn)
 				if flip{
 					put_ret=1
+					if dry_run:ret=put_ret:break
 					board(ii,jj)*=-1
 					i=ii:j=jj
 					turn=board(ii,jj)
@@ -230,6 +234,7 @@ stop
 	i=org_i:j=org_j
 	turn=org_turn
 	ret=put_ret
+	if dry_run:return
 	if ret{
 		board(i,j)=turn
 		gosub *draw_stone
@@ -263,19 +268,37 @@ stop
 
 ; 次のターン
 *next_turn
+	if pass_cnt==5:goto *show_result
 	if turn<0:turn=0
 	turn++
 	turn\=5
 	if turn==0:turn=-1
 	gosub *draw_turn
+	gosub *check_pass
+	if is_pass:pass_cnt++:gosub *pass
+	return
+
+; パスかチェック
+; -> is_pass
+*check_pass
+	is_pass=1
+	repeat S
+		i=cnt
+		repeat S
+			j=cnt
+			dry_run=1
+			gosub *put
+			if ret:is_pass=0
+		loop
+	loop
 	return
 
 *end_game_confirm
 	dialog "本当にゲームを終了しますか？",3
-	if stat==6:goto *end_game
+	if stat==6:end
 	return
 
-*end_game
+*show_result
 	white=0
 	colored=0
 	repeat S
