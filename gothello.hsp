@@ -106,7 +106,7 @@ gosub *draw_stone
 turn=3:i=S/2+1:j=S/2+1
 board(i,j)=turn
 gosub *draw_stone
-turn=4:i==S/2-1:j==S/2-1
+turn=4:i=S/2-1:j=S/2-1
 board(i,j)=turn
 gosub *draw_stone
 
