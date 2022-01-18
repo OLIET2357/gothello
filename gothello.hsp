@@ -1,5 +1,5 @@
 ; 白の裏が見えるか
-can_see_back=0
+can_see_back=1
 ; 無双モード
 musou=1
 ; パス禁止
