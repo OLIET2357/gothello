@@ -12,6 +12,8 @@
 
 またオセロのルール通り打てる場合は打たなくてはならない（戦略的パス禁止）ようにすると、直感に反す結果が出て面白いです。
 
+[オリジナル](https://github.com/OLIET2357/gothello/releases/tag/original)
+
 # 棋譜
 
 通常のオセロと同じように文字列での棋譜が定義できる。
@@ -59,6 +61,8 @@
 
 四面楚歌感が半端ないですしなにより全てのマスを使ってプレイすることができます。
 
+[リリース](https://github.com/OLIET2357/gothello/releases/tag/musou)
+
 ## 真ん中の白の裏
 
 対称性があるため赤にしていますが、ほかの色にしたりランダムにしたり前述のビンゴ方式も考えられます。
@@ -82,3 +86,5 @@
 自然な最小限の拡張でまともな二人零和有限確定完全情報ゲームとして成り立つものです。
 
 ![Standard](img/standard.png)
+
+[リリース](https://github.com/OLIET2357/gothello/releases/tag/standard)
