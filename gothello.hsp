@@ -10,6 +10,8 @@ random_back=0
 restrict_back=0
 ; 真ん中の白はひっくり返さない（未実装）
 bingo=0
+; 棋譜を保存
+save_kifu=0
 
 ; 定数宣言
 
@@ -64,6 +66,8 @@ title "ゴセロ"
 
 
 *start
+
+kifu=""
 
 pos 0,0
 objsize
@@ -178,6 +182,7 @@ stop
 		if 0<=i and i<S and 0<=j and j<S:else:return
 		dry_run=0
 		gosub *put
+		if ret:gosub *add_kifu
 		filled=1
 		if ret{
 			repeat S
@@ -293,6 +298,15 @@ stop
 	loop
 	return
 
+*add_kifu
+	w_rgpb="rgpb"
+	RGPB="RGPB"
+	if turn<0:kifu+=strmid(w_rgpb,-turn-1,1)
+	if turn>0:kifu+=strmid(RGPB,turn-1,1)
+	abcdefghi="abcdefghi"
+	kifu+=strmid(abcdefghi,i,1)+str(j+1)+";"
+	return
+
 *end_game_confirm
 	dialog "本当にゲームを終了しますか？",3
 	if stat==6:end
@@ -310,4 +324,12 @@ stop
 		loop
 	loop
 	dialog "白 - 色\n"+white+ " - "+colored,0,"結果"
+	if save_kifu{
+		dialog "txt",17,"棋譜ファイル"
+		if stat{
+			notesel kifu
+			notesave refstr
+			dialog "棋譜を保存しました",0
+		}
+	}
 	stop
